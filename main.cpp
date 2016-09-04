@@ -24,6 +24,7 @@ int main(int argc, char *argv[]) {
         for (hsql::SQLStatement* stmt : result->statements) {
             // process the statements...
             hsql::printStatementInfo(stmt);
+            cout << stmt << "\n";
         }
 
         return 0;

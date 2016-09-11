@@ -8,7 +8,12 @@ def get_condition(cmd):
         if cmd[i:i+5]=="where":
             conds = cmd[i+5:]
             break
-    return conds.strip()
+    conds=conds.strip('\n').strip()
+    conds = conds.split(',')
+    conds = [x.encode('ascii','ignore').strip(',').strip() for x in conds]
+    conds = filter(None, conds)
+    return conds
+
 
 def get_attributes(cmd):
     temp = ""
@@ -41,16 +46,37 @@ def get_table(cmd):
     tables = filter(None, tables)
     return str(tables).strip('[]').strip("'")
 
-def print_result(a,attributes,database,tables):
+def print_result(a,attributes,database,tables,conditions):
     maxlen = len(a)
     res = list(itertools.product(*a))
+    array = []
+    for i in database:
+        for j in tables:
+            if i[0]==j:
+                for x in range(1,len(i)):
+                    array.append(i[0]+"."+i[x])
     final = []
     for i in res:
         final.append(list(itertools.chain(*i)))
+    '''
+        For conditions
+    '''
+    for i in conditions:
+        var = i.split("=")
+        ans = []
+        for i in final:
+            for j in range(len(array)):
+                if(array[j]==var[0] and i[j]==int(var[1])):
+                    ans.append(i)
+        final = ans
     if(attributes[0]=="*"):
+        for i in array:
+            print i,"\t",
+        print
+        print "-"*80
         for i in final:
             for j in i:
-                print j,"\t",
+                print j,"\t\t",
             print
     else:
         sel = []
@@ -70,7 +96,7 @@ def print_result(a,attributes,database,tables):
         for i in attributes:
             print i,"\t",
         print
-        print "_"*40
+        print "-"*80
         for i in final:
             for j in sel:
                 print i[j],"\t\t",
@@ -107,4 +133,4 @@ for i in tables:
         temp = [int(x) for x in j.split(',')]
         list1.append(temp)
     table_data.append(list1)
-print_result(table_data,attributes,database,tables)
+print_result(table_data,attributes,database,tables,conditions)

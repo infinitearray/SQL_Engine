@@ -1,5 +1,6 @@
 import sqlparse
 import sys
+import itertools
 
 def get_condition(cmd):
     conds = ""
@@ -40,8 +41,14 @@ def get_table(cmd):
     tables = temp.split('\n')
     tables = [x.encode('ascii','ignore').strip(',').strip() for x in tables]
     tables = filter(None, tables)
-    return tables
+    return str(tables).strip('[]').strip("'")
 
+def print_result(a):
+    maxlen = len(a)
+    res = list(itertools.product(*a))
+    final = []
+    for i in res:
+        print list(itertools.chain(*i))
 
 ######################Get all the columns and tables
 database = []
@@ -55,15 +62,21 @@ while True:
     text = text[index+1:]
 print database
 ######################
-inp = sys.argv[1:]
-for i in inp:
-    cmd = i
-    print cmd
-    print "-"*20
-    print "Attributes:",get_attributes(cmd)
-    tables = get_table(cmd)
-    print "Tables:",tables
-    print "Conditions:",get_condition(cmd)
-    print '-'*20
-    for i in tables:
-        lines = [line.rstrip('\r\n') for line in open(i+".csv")]
+cmd = sys.argv[1]
+table_data = []
+print cmd
+print "-"*20
+print "Attributes:",get_attributes(cmd)
+tables = get_table(cmd)
+print "Tables:",tables
+print "Conditions:",get_condition(cmd)
+print '-'*20
+tables = tables.split(',')
+for i in tables:
+    lines = [line.rstrip('\r\n') for line in open(i+".csv")]
+    list1 = []
+    for j in lines:
+        temp = [int(x) for x in j.split(',')]
+        list1.append(temp)
+    table_data.append(list1)
+print_result(table_data)

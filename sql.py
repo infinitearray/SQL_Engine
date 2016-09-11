@@ -9,11 +9,22 @@ def get_condition(cmd):
             conds = cmd[i+5:]
             break
     conds=conds.strip('\n').strip()
-    conds = conds.split(',')
+    conds = conds.split("and")
     conds = [x.encode('ascii','ignore').strip(',').strip() for x in conds]
     conds = filter(None, conds)
     return conds
 
+def get_or_condition(cmd):
+    conds = ""
+    for i in range(len(cmd)):
+        if cmd[i:i+5]=="where":
+            conds = cmd[i+5:]
+            break
+    conds=conds.strip('\n').strip()
+    conds = conds.split("or")
+    conds = [x.encode('ascii','ignore').strip(',').strip() for x in conds]
+    conds = filter(None, conds)
+    return conds
 
 def get_attributes(cmd):
     temp = ""
@@ -46,7 +57,7 @@ def get_table(cmd):
     tables = filter(None, tables)
     return str(tables).strip('[]').strip("'")
 
-def print_result(a,attributes,database,tables,conditions):
+def print_result(cmd,a,attributes,database,tables,conditions):
     maxlen = len(a)
     res = list(itertools.product(*a))
     array = []
@@ -61,25 +72,48 @@ def print_result(a,attributes,database,tables,conditions):
     '''
         For conditions
     '''
-    for i in conditions:
-        var = i.split("=")
-        ans = []
-        for i in final:
-            flag = 0
-            for j in database:
-                if j[0] in var[1]:
-                    flag = 1
-                    break
-            if(flag==0):
-                for j in range(len(array)):
-                    if(array[j]==var[0] and i[j]==int(var[1])):
-                        ans.append(i)
-            else:
-                for j in range(len(array)):
-                    for k in range(len(array)):
-                        if(array[j]==var[0] and array[k]==var[1] and i[j]==i[k]):
-                            ans.append(i)
+    if('and' in cmd or ('and' not in cmd and 'or' not in cmd)):
+        for i in conditions:
+            var = i.split("=")
+            ans = []
+            for i in final:
+                flag = 0
+                for j in database:
+                    if j[0] in var[1]:
+                        flag = 1
+                        break
+                if(flag==0):
+                    for j in range(len(array)):
+                        if(array[j]==var[0] and i[j]==int(var[1])):
+                           ans.append(i)
+                else:
+                    for j in range(len(array)):
+                        for k in range(len(array)):
+                            if(array[j]==var[0] and array[k]==var[1] and i[j]==i[k]):
+                                ans.append(i)
+            final = ans
+    else:
+        conditions = get_or_condition(cmd)
+        ans =[]
+        for i in conditions:
+            var = i.split("=")
+            for i in final:
+                flag = 0
+                for j in database:
+                    if j[0] in var[1]:
+                        flag = 1
+                        break
+                if(flag==0):
+                    for j in range(len(array)):
+                        if(array[j]==var[0] and i[j]==int(var[1])):
+                           ans.append(i)
+                else:
+                    for j in range(len(array)):
+                        for k in range(len(array)):
+                            if(array[j]==var[0] and array[k]==var[1] and i[j]==i[k]):
+                                ans.append(i)
         final = ans
+
     if(attributes[0]=="*"):
         for i in array:
             print i,"\t",
@@ -144,4 +178,4 @@ for i in tables:
         temp = [int(x) for x in j.split(',')]
         list1.append(temp)
     table_data.append(list1)
-print_result(table_data,attributes,database,tables,conditions)
+print_result(cmd,table_data,attributes,database,tables,conditions)

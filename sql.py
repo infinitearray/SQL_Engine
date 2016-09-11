@@ -65,9 +65,20 @@ def print_result(a,attributes,database,tables,conditions):
         var = i.split("=")
         ans = []
         for i in final:
-            for j in range(len(array)):
-                if(array[j]==var[0] and i[j]==int(var[1])):
-                    ans.append(i)
+            flag = 0
+            for j in database:
+                if j[0] in var[1]:
+                    flag = 1
+                    break
+            if(flag==0):
+                for j in range(len(array)):
+                    if(array[j]==var[0] and i[j]==int(var[1])):
+                        ans.append(i)
+            else:
+                for j in range(len(array)):
+                    for k in range(len(array)):
+                        if(array[j]==var[0] and array[k]==var[1] and i[j]==i[k]):
+                            ans.append(i)
         final = ans
     if(attributes[0]=="*"):
         for i in array:
@@ -102,7 +113,7 @@ def print_result(a,attributes,database,tables,conditions):
                 print i[j],"\t\t",
             print
 
-######################Get all the columns and tables
+######################  Get all the columns and tables
 database = []
 text = [line.strip('\r\n') for line in open('metadata.txt')]
 while True:

@@ -20,10 +20,8 @@ def get_attributes(cmd):
         if temp[i:i+4]=="from":
             temp = temp[:i]
             break
-#    print isinstance(temp, basestring)
-    attrs = temp.split('\n')
-    for i in range(len(attrs)):
-        attrs[i] = attrs[i].encode('ascii','ignore').strip(',').strip()
+    attrs = temp.split(',')
+    attrs = [x.encode('ascii','ignore').strip(',').strip() for x in attrs]
     attrs = filter(None, attrs)
     return attrs
 
@@ -43,12 +41,40 @@ def get_table(cmd):
     tables = filter(None, tables)
     return str(tables).strip('[]').strip("'")
 
-def print_result(a):
+def print_result(a,attributes,database,tables):
     maxlen = len(a)
     res = list(itertools.product(*a))
     final = []
     for i in res:
-        print list(itertools.chain(*i))
+        final.append(list(itertools.chain(*i)))
+    if(attributes[0]=="*"):
+        for i in final:
+            for j in i:
+                print j,"\t",
+            print
+    else:
+        sel = []
+        cnt = 0
+        directory = {}
+        for i in tables:
+            for j in database:
+                if i==j[0]:
+                    directory[i]=len(j)-1
+        for i in tables:
+            for j in database:
+                if i==j[0]:
+                  for k in attributes:
+                      if i in k:
+                          sel.append(cnt+j.index(k.replace(i+".",""))-1)
+            cnt=cnt+directory[i]
+        for i in attributes:
+            print i,"\t",
+        print
+        print "_"*40
+        for i in final:
+            for j in sel:
+                print i[j],"\t\t",
+            print
 
 ######################Get all the columns and tables
 database = []
@@ -66,10 +92,12 @@ cmd = sys.argv[1]
 table_data = []
 print cmd
 print "-"*20
-print "Attributes:",get_attributes(cmd)
+attributes = get_attributes(cmd)
+print "Attributes:",attributes
 tables = get_table(cmd)
 print "Tables:",tables
-print "Conditions:",get_condition(cmd)
+conditions = get_condition(cmd)
+print "Conditions:",conditions
 print '-'*20
 tables = tables.split(',')
 for i in tables:
@@ -79,4 +107,4 @@ for i in tables:
         temp = [int(x) for x in j.split(',')]
         list1.append(temp)
     table_data.append(list1)
-print_result(table_data)
+print_result(table_data,attributes,database,tables)

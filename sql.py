@@ -2,26 +2,14 @@ import sqlparse
 import sys
 import itertools
 
-def get_condition(cmd):
+def get_condition(cmd,string):
     conds = ""
     for i in range(len(cmd)):
         if cmd[i:i+5]=="where":
             conds = cmd[i+5:]
             break
     conds=conds.strip('\n').strip()
-    conds = conds.split("and")
-    conds = [x.encode('ascii','ignore').strip(',').strip() for x in conds]
-    conds = filter(None, conds)
-    return conds
-
-def get_or_condition(cmd):
-    conds = ""
-    for i in range(len(cmd)):
-        if cmd[i:i+5]=="where":
-            conds = cmd[i+5:]
-            break
-    conds=conds.strip('\n').strip()
-    conds = conds.split("or")
+    conds = conds.split(string)
     conds = [x.encode('ascii','ignore').strip(',').strip() for x in conds]
     conds = filter(None, conds)
     return conds
@@ -69,9 +57,7 @@ def print_result(cmd,a,attributes,database,tables,conditions):
     final = []
     for i in res:
         final.append(list(itertools.chain(*i)))
-    '''
-        For conditions
-    '''
+    #####   For conditions
     if('and' in cmd or ('and' not in cmd and 'or' not in cmd)):
         for i in conditions:
             var = i.split("=")
@@ -93,7 +79,7 @@ def print_result(cmd,a,attributes,database,tables,conditions):
                                 ans.append(i)
             final = ans
     else:
-        conditions = get_or_condition(cmd)
+        conditions = get_condition(cmd,"or")
         ans =[]
         for i in conditions:
             var = i.split("=")
@@ -105,12 +91,12 @@ def print_result(cmd,a,attributes,database,tables,conditions):
                         break
                 if(flag==0):
                     for j in range(len(array)):
-                        if(array[j]==var[0] and i[j]==int(var[1])):
+                        if(array[j]==var[0] and i[j]==int(var[1]) and i not in ans):
                            ans.append(i)
                 else:
                     for j in range(len(array)):
                         for k in range(len(array)):
-                            if(array[j]==var[0] and array[k]==var[1] and i[j]==i[k]):
+                            if(array[j]==var[0] and array[k]==var[1] and i[j]==i[k] and i not in ans):
                                 ans.append(i)
         final = ans
 
@@ -157,19 +143,22 @@ while True:
         break
     database.append(text[1:index])
     text = text[index+1:]
-print database
+#print database
 ######################
 cmd = sys.argv[1]
 table_data = []
-print cmd
+attributes = get_attributes(cmd)
+tables = get_table(cmd)
+conditions = get_condition(cmd,"and")
+"""print cmd
 print "-"*20
 attributes = get_attributes(cmd)
 print "Attributes:",attributes
 tables = get_table(cmd)
 print "Tables:",tables
-conditions = get_condition(cmd)
+conditions = get_condition(cmd,"and")
 print "Conditions:",conditions
-print '-'*20
+print '-'*20"""
 tables = tables.split(',')
 for i in tables:
     lines = [line.rstrip('\r\n') for line in open(i+".csv")]

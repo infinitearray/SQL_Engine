@@ -58,6 +58,12 @@ def print_result(cmd,a,attributes,database,tables,conditions):
     for i in res:
         final.append(list(itertools.chain(*i)))
     #####   For conditions
+    distinct_flag = 0
+    if "distinct" in cmd:
+        distinct_flag = 1
+        for i in range(len(attributes)):
+            attributes[i] = attributes[i][8:].strip("()")
+
     if('and' in cmd or ('and' not in cmd and 'or' not in cmd)):
         for i in conditions:
             var = i.split("=")
@@ -103,6 +109,7 @@ def print_result(cmd,a,attributes,database,tables,conditions):
     min_flag = 0
     avg_flag = 0
     sum_flag = 0
+    
     if ("max" in cmd or "min" in cmd or "avg" in cmd or "sum" in cmd):
         try:
             assert (len(attributes)==1)
@@ -122,10 +129,17 @@ def print_result(cmd,a,attributes,database,tables,conditions):
             print i,"\t",
         print
         print "-"*80
+        temp_final = []
         for i in final:
-            for j in i:
-                print j,"\t\t",
-            print
+            if distinct_flag and i not in temp_final:
+                temp_final.append(i)
+                for j in i:
+                    print j,"\t\t",
+                print
+            else:
+                for j in i:
+                    print j,"\t\t",
+                print
 
     else:
         sel = []
@@ -169,10 +183,24 @@ def print_result(cmd,a,attributes,database,tables,conditions):
                 avg_elem = avg_elem +i[sel[0]]
             print float(avg_elem/len(final))
         else:
-            for i in final:
-                for j in sel:
-                    print i[j],"\t\t",
-                print
+            temp_temp = []
+            if distinct_flag:
+                for i in final:
+                    temp = []
+                    for j in sel:
+                        temp.append(i[j])
+                    if temp not in temp_temp:
+                        temp_temp.append(temp)
+                for i in temp_temp:
+                    for j in i:
+                        print j,"\t\t",
+                    print
+            else:
+                for i in final:
+                    for j in sel:
+                        print i[j],"\t\t",
+                    print
+
 
 
 ######################  Get all the columns and tables

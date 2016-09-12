@@ -1,5 +1,6 @@
 import sqlparse
 import sys
+import os
 import itertools
 
 def get_condition(cmd,string):
@@ -116,7 +117,7 @@ def print_result(cmd,a,attributes,database,tables,conditions):
             assert (len(attributes)==1)
             attributes[0] = attributes[0][3:].strip("()")
         except:
-            sys.exit('Error!')
+            sys.exit('Error : Cannot project multiple columns when using aggregate functions')
     if "max" in cmd:
         max_flag = 1
     elif "min" in cmd:
@@ -129,7 +130,7 @@ def print_result(cmd,a,attributes,database,tables,conditions):
         for i in array:
             print i,"\t",
         print
-        print "-"*80
+#        print "-"*80
         temp_final = []
         for i in final:
             if distinct_flag and i not in temp_final:
@@ -160,7 +161,7 @@ def print_result(cmd,a,attributes,database,tables,conditions):
         for i in attributes:
             print i,"\t",
         print
-        print "-"*80
+ #       print "-"*80
         if max_flag:
             max_elem = final[0][sel[0]]
             for i in final:
@@ -216,7 +217,11 @@ while True:
     text = text[index+1:]
 #print database
 ######################
-cmd = sys.argv[1].strip(';')
+cmd = ""
+try:
+    cmd = sys.argv[1].strip(';')
+except:
+    sys.exit("Error : No SQL query\nUsage : python main.py <sql-query>")
 table_data = []
 attributes = get_attributes(cmd)
 tables = get_table(cmd)
@@ -232,13 +237,20 @@ print "Conditions:",conditions
 print '-'*20"""
 tables = tables.split(',')
 for i in tables:
-    lines = [line.rstrip('\r\n') for line in open(i+".csv")]
-    list1 = []
-    for j in lines:
-        temp = [int(x) for x in j.split(',')]
-        list1.append(temp)
-    table_data.append(list1)
-for i in attributes:
+    try:
+        lines = [line.rstrip('\r\n') for line in open(i+".csv")]
+        list1 = []
+        for j in lines:
+            temp = [int(x) for x in j.split(',')]
+            list1.append(temp)
+        table_data.append(list1)
+    except:
+        sys.exit("Error : No table "+i+".csv")
+
+temp = []
+for i in conditions:
+    temp.append(i.split("=")[0])
+for i in attributes+temp:
     cnt = 0
     for j in tables:
         for k in database:
@@ -246,7 +258,6 @@ for i in attributes:
                 cnt = cnt+1
     if cnt>1:
         sys.exit("Error : Use <table_name>.col for same column names in different tables")
-
 for i in range(len(attributes)):
     var = 0
     for j in tables:
@@ -261,4 +272,17 @@ for i in range(len(attributes)):
                     attributes[i]=attributes[i][:4]+j+"."+attributes[i][4:]
                 elif attributes[i][9:-1] in k and j==k[0] and ("distinct" in attributes[i]):# or "avg" or "min" or "max" in attributes[i]):
                     attributes[i]=attributes[i][:9]+j+"."+attributes[i][9:]
+
+for i in range(len(conditions)):
+    var = 0
+    temp_cond = conditions[i].split("=")[0]
+    for j in tables:
+        if j in temp_cond:
+            var = 1
+    if var==0:
+        for j in tables:
+            for k in database:
+                if temp_cond in k and j==k[0]:
+                    conditions[i]=j+"."+conditions[i]
+
 print_result(cmd,table_data,attributes,database,tables,conditions)

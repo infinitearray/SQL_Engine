@@ -99,7 +99,24 @@ def print_result(cmd,a,attributes,database,tables,conditions):
                             if(array[j]==var[0] and array[k]==var[1] and i[j]==i[k] and i not in ans):
                                 ans.append(i)
         final = ans
-
+    max_flag = 0
+    min_flag = 0
+    avg_flag = 0
+    sum_flag = 0
+    if ("max" in cmd or "min" in cmd or "avg" in cmd or "sum" in cmd):
+        try:
+            assert (len(attributes)==1)
+            attributes[0] = attributes[0][3:].strip("()")
+        except:
+            sys.exit('Error!')
+    if "max" in cmd:
+        max_flag = 1
+    elif "min" in cmd:
+        min_flag = 1
+    elif "avg" in cmd:
+        avg_flag = 1
+    elif "sum" in cmd:
+        sum_flag = 1
     if(attributes[0]=="*"):
         for i in array:
             print i,"\t",
@@ -109,6 +126,7 @@ def print_result(cmd,a,attributes,database,tables,conditions):
             for j in i:
                 print j,"\t\t",
             print
+
     else:
         sel = []
         cnt = 0
@@ -128,10 +146,34 @@ def print_result(cmd,a,attributes,database,tables,conditions):
             print i,"\t",
         print
         print "-"*80
-        for i in final:
-            for j in sel:
-                print i[j],"\t\t",
-            print
+        if max_flag:
+            max_elem = final[0][sel[0]]
+            for i in final:
+                if(i[sel[0]]>max_elem):
+                    max_elem = i[sel[0]]
+            print max_elem
+        elif min_flag:
+            min_elem = final[0][sel[0]]
+            for i in final:
+                if(i[sel[0]]<min_elem):
+                    min_elem = i[sel[0]]
+            print min_elem
+        elif sum_flag:
+            sum_elem = 0
+            for i in final:
+                sum_elem = sum_elem+i[sel[0]]
+            print max_elem
+        elif avg_flag:
+            avg_elem = 0
+            for i in final:
+                avg_elem = avg_elem +i[sel[0]]
+            print float(avg_elem/len(final))
+        else:
+            for i in final:
+                for j in sel:
+                    print i[j],"\t\t",
+                print
+
 
 ######################  Get all the columns and tables
 database = []

@@ -127,15 +127,14 @@ def print_result(cmd,a,attributes,database,tables,conditions):
         sum_flag = 1
     if(attributes[0]=="*"):
         for i in array:
-            print i,"\t",
+            print i,
         print
-#        print "-"*80
         temp_final = []
         for i in final:
             if distinct_flag and i not in temp_final:
                 temp_final.append(i)
                 for j in i:
-                    print j,"\t\t",
+                    print j,"\t"
                 print
             else:
                 for j in i:
@@ -158,9 +157,8 @@ def print_result(cmd,a,attributes,database,tables,conditions):
                           sel.append(cnt+j.index(k.replace(i+".",""))-1)
             cnt=cnt+directory[i]
         for i in attributes:
-            print i,"\t",
+            print i,
         print
- #       print "-"*80
         if max_flag:
             max_elem = final[0][sel[0]]
             for i in final:
@@ -194,12 +192,12 @@ def print_result(cmd,a,attributes,database,tables,conditions):
                         temp_temp.append(temp)
                 for i in temp_temp:
                     for j in i:
-                        print j,"\t\t",
+                        print j,
                     print
             else:
                 for i in final:
                     for j in sel:
-                        print i[j],"\t\t",
+                        print i[j],
                     print
 
 

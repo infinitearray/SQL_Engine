@@ -129,7 +129,7 @@ def print_result(cmd,a,attributes,database,tables,conditions):
         for i in array:
             print i,"\t",
         print
-#        print "-"*80
+        print "-"*80
         temp_final = []
         for i in final:
             if distinct_flag and i not in temp_final:
@@ -160,7 +160,7 @@ def print_result(cmd,a,attributes,database,tables,conditions):
         for i in attributes:
             print i,"\t",
         print
- #       print "-"*80
+        print "-"*80
         if max_flag:
             max_elem = final[0][sel[0]]
             for i in final:

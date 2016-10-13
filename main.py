@@ -6,11 +6,11 @@ import itertools
 def get_condition(cmd,string):
     conds = ""
     for i in range(len(cmd)):
-        if cmd[i:i+5]=="where":
+        if cmd[i:i+5].lower()=="where":
             conds = cmd[i+5:]
             break
     conds=conds.strip('\n').strip()
-    conds = conds.split(string)
+    conds = conds.split(string.lower())
     conds = [x.encode('ascii','ignore').strip(',').strip() for x in conds]
     conds = filter(None, conds)
     return conds
@@ -18,11 +18,11 @@ def get_condition(cmd,string):
 def get_attributes(cmd):
     temp = ""
     for i in range(len(cmd)):
-        if cmd[i:i+6]=="select":
+        if cmd[i:i+6].lower()=="select":
             temp = cmd[i+6:]
             break
     for i in range(len(temp)):
-        if temp[i:i+4]=="from":
+        if temp[i:i+4].lower()=="from":
             temp = temp[:i]
             break
     attrs = temp.split(',')
@@ -33,12 +33,12 @@ def get_attributes(cmd):
 def get_table(cmd):
     temp = ""
     for i in range(len(cmd)):
-        if cmd[i:i+4]=="from":
+        if cmd[i:i+4].lower()=="from":
             temp = cmd[i+5:]
             break
     temp=temp.strip()
     for i in range(len(temp)):
-        if temp[i:i+5]=="where":
+        if temp[i:i+5].lower()=="where":
             temp = temp[:i]
             break
     tables = temp.split('\n')
@@ -60,12 +60,11 @@ def print_result(cmd,a,attributes,database,tables,conditions):
         final.append(list(itertools.chain(*i)))
     #####   For conditions
     distinct_flag = 0
-    if "distinct" in cmd:
+    if "distinct" in cmd.lower():
         distinct_flag = 1
         for i in range(len(attributes)):
             attributes[i] = attributes[i][8:].strip("()")
-
-    if('and' in cmd or ('and' not in cmd and 'or' not in cmd)):
+    if('and' in cmd.lower() or ('and' not in cmd.lower() and 'or' not in cmd.lower())):
         for i in conditions:
             var = i.split("=")
             ans = []
@@ -87,6 +86,20 @@ def print_result(cmd,a,attributes,database,tables,conditions):
             final = ans
     else:
         conditions = get_condition(cmd,"or")
+        if(len(conditions)==0):
+            conditions = get_condition(cmd,"OR")
+
+        for i in range(len(conditions)):
+            var = 0
+            temp_cond = conditions[i].split("=")[0]
+            for j in tables:
+                if j in temp_cond:
+                    var = 1
+            if var==0:
+                for j in tables:
+                    for k in database:
+                        if temp_cond in k and j==k[0]:
+                            conditions[i]=j+"."+conditions[i]
         ans =[]
         for i in conditions:
             var = i.split("=")
@@ -98,12 +111,12 @@ def print_result(cmd,a,attributes,database,tables,conditions):
                         break
                 if(flag==0):
                     for j in range(len(array)):
-                        if(array[j]==var[0] and i[j]==int(var[1]) and i not in ans):
+                        if(array[j]==var[0] and i[j]==int(var[1])):
                            ans.append(i)
                 else:
                     for j in range(len(array)):
                         for k in range(len(array)):
-                            if(array[j]==var[0] and array[k]==var[1] and i[j]==i[k] and i not in ans):
+                            if(array[j]==var[0] and array[k]==var[1] and i[j]==i[k]):
                                 ans.append(i)
         final = ans
     
@@ -256,6 +269,8 @@ for i in attributes+temp:
         for k in database:
             if j==k[0] and i in k:
                 cnt = cnt+1
+    if cnt==0:
+        sys.exit("Error : Given column %s is not present in the database"%(i))
     if cnt>1:
         sys.exit("Error : Use <table_name>.col for same column names in different tables")
 for i in range(len(attributes)):
